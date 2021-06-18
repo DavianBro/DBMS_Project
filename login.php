@@ -51,20 +51,15 @@ if($result) {
                 }
             }
             // If the Login is not in Database 
-            else { //if login is not present
+                                 else { 
 
+                                    echo "Login ".$username." doesn’t exist in the database";
 
-// Not my code chop up 
-echo "Login ".$username." doesn’t exist in the database";
+                                }
 
-}
+                        }
 
-}
-
-
-
-
-        }
+                    }
 
 
 mysqli_close($con);
