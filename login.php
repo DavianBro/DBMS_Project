@@ -1,11 +1,33 @@
 <?php  
-// 1.2 _____ (5 pts) If the login does not exist in the database, please display an error message “Login XXXX doesn’t
-// exist in the database” and exit the program.
-// 1.4 _____ (5 pts) All other main items should be available only when the login and password match the record in the
-// database which is considered login successfully.
 
 // Use db. config
 include "dbconfig.php";
+
+
+// Display Tech info of the User, such as OS, IP Address, and whether they are from Kean 
+function techInfo(){
+    echo "<br>";
+    // Displays IP Address
+    echo ' Your IP: '. $_SERVER['REMOTE_ADDR'] . "\n\n";
+    echo "<br>";
+    // Displays Browser and OS information 
+    echo ' Your browser and OS: ' . $_SERVER['HTTP_USER_AGENT'] . "\n\n";
+    // Displays Whether User is from Kean University or not 
+    echo "<br>";
+    
+
+
+// Put in HTML
+
+
+
+
+}
+
+// Successful Login Function 
+
+
+
 
 // Connection to DB statement 
 $con = mysqli_connect($dbhostname, $dbusername, $dbpassword, $dbname)
@@ -18,6 +40,7 @@ if(!isset($_POST['submitbutton'])) {
  $username = $_POST["username"]; // Username variable: Use to be GET
 
  $password = $_POST["password"]; // Password variable: Use to be GET
+
 
 // converts username to lowercase
 $username=strtolower($username);
@@ -45,23 +68,31 @@ if($result) {
                         // If Login is Successful 
                         else { 
 
-                    echo "Login : ".$username." and Password : ".$password." are present.Login successfull";
-                    // Build Out The Rest Of The Module through this and get rid of it 
+                            techInfo();
+
+
+                            // Build out fnction 
+
 
                 }
             }
             // If the Login is not in Database 
-                                 else { 
-
-                                    echo "Login ".$username." doesn’t exist in the database";
-
-                                }
+            else { 
+                    // Not my code chop up 
+                    echo "Login ".$username." doesn’t exist in the database";
 
                         }
 
                     }
+        }
 
-// 
+
+
+
+
+
+       
+
 
 mysqli_close($con);
 
