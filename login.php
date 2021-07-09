@@ -35,14 +35,29 @@ function techInfo(){
     // Displays Whether User is from Kean University or not
      $ipaddress = $_SERVER['REMOTE_ADDR'];
 
-     /*if($ipaddress!='10.250.8.366'){
+$dnsvalue = true;
 
-        echo " You are NOT from Kean University!";
-     }else{
+if(dns_get_record("kean.edu") == $dnsvalue){
 
-         echo " You are from Kean University!";
-     }*/
+     echo " You are NOT from Kean University!";
+    }else{
 
+      echo " You are from Kean University!";
+}
+
+
+   /* 
+
+   Hard-Coded Kean IP Address
+
+   if($ipaddress!='10.116.10.5'){
+
+        // echo " You are NOT from Kean University!";
+     // }else{
+
+        //  echo " You are from Kean University!";
+    //  }
+*/
 
 }
 
@@ -86,7 +101,10 @@ if($result) {
                         else { 
 
                             techInfo();
-                            setcookie("user",$username,time()+10*60);
+
+                            setcookie("user",$username,time()+10*60); // Must use Session Key and Cookie OR DO we use something else?
+                            // Whenever I refresh I lose data
+
                             echo "<br>";
                             // Displays Welcome Message to User
                             echo "Welcome Customer: "; 
@@ -102,22 +120,107 @@ if($result) {
                             $userZipCode = $row['zipcode'];
                             homeAddress($userStreet, $userCity, $userZipCode);
 
+                            echo "<br>";
+
                             // Display User Image 
-                            //$image = $row['img'];
-                           
-                            //echo "<img src='/".$row['img']."'>";
+                            echo '<img src="data:image/jpeg;base64,'.base64_encode( $row['img'] ).'"/>';
 
 
-                          
-                            // Display User address
-                            // Must use Session Key and Cookie 
+                            // Line Border
+                           echo '<hr/>'; 
 
-                            // Whenever I refresh I lose data
+
+                        // Display all records for the logged in customer in your Money_xxxx table that you created and and inserted in Homework1.
+                      $MoneyTblQuery = "SELECT mid, code, cid, type, amount, mydatetime, note 
+                      FROM CPS3740_2021S1.Money_brodavia m inner join CPS3740.Customers c
+                      WHERE c.id = m.sid";
+
+
+                        $result_set = $con->query($MoneyTblQuery);
+
+
+// Prints Table for Customer 
+if (mysqli_num_rows($result_set) > 0) {
+
+
+// output data of each row
+echo "<TABLE width='1000'>";  // open the table and start tag
+echo "<TABLE border=1>\n
+<tr>    
+<th>ID</th>
+<th>Code</th>
+<th>Type</th>
+<th>Amount</th>
+<th>Source</th>
+<th>Date Time</th>
+<th>Note</th>
+</tr> ";
+
+if($result_set){
+  
+        while($row = mysqli_fetch_array($result_set)) {
+
+    $ID= $row["mid"];
+    $code = $row["code"];
+    $type =$row["type"];
+    $amount=$row["amount"];
+    $mydatetime = $row["mydatetime"];
+    $note = $row["note"];
+
+    if($row['type'] == 'W'){
+
+       $tdStyle = 'red';
+
+        } elseif($row['type'] == 'D'){
+    $tdStyle = 'blue';
+}
+
+echo "<tr><td>" . $row["mid"]. "</td><td>" . $row["code"] . "</td><td>" . $row["type"]. " <td style= color:{$tdStyle};'>{$row['amount']}</td>"."</td><td>". "</td><td>" 
+
+. $row["mydatetime"]. "</td><td>" . $row["note"]. "</td></tr>";
+
+
+
+
+
+}
+} 
+echo "</TABLE>\n";
+}
+
+
+
+ <TR><TD><form action='add_transaction.php' method='POST'>
+
+   <input type='hidden' name='customer_name' value='Mary Lee'>
+
+   <input type='submit' value='Add transaction'></form>
+
+   <TD><a href='display_update_transaction.php'>Display and update transaction</a>
+
+   <TR><TD colspan=2><form action="search_transaction.php" method="get">
+
+   Keyword: <input type="text" name="keywords" required="required" >
+
+   <input type="submit" value="Search transaction"></form>
+
+
+
+
+
 
 
                 }
+
+
+
+  
+
+
+
+
             }
-            // If the Login is not in Database 
+                //  If the Login is not in Database 
             else { 
                     echo "Login ".$username." doesn’t exist in the database";
 
@@ -125,14 +228,6 @@ if($result) {
 
                     }
         }
-
-
-
-
-
-
-       
-
 
 mysqli_close($con);
 
