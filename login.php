@@ -1,3 +1,7 @@
+
+<html>
+<a href='logout.php'>User logout</a><br>
+
 <?php  
 
 // Use db. config
@@ -133,7 +137,7 @@ if($result) {
                         // Display all records for the logged in customer in your Money_xxxx table that you created and and inserted in Homework1.
                       $MoneyTblQuery = "SELECT mid, code, cid, type, amount, mydatetime, note 
                       FROM CPS3740_2021S1.Money_brodavia m inner join CPS3740.Customers c
-                      WHERE c.id = m.sid";
+                      WHERE c.id = m.cid  AND login='$username' "; // Link it to users login and name 
 
 
                         $result_set = $con->query($MoneyTblQuery);
@@ -174,48 +178,24 @@ if($result_set){
         } elseif($row['type'] == 'D'){
     $tdStyle = 'blue';
 }
+echo "<tr><td>" . $ID. "</td><td>" . $code . "</td><td>" . $type. " <td style= color:{$tdStyle};'>{$row['amount']}</td>"."</td><td>". "</td><td>" 
 
-echo "<tr><td>" . $row["mid"]. "</td><td>" . $row["code"] . "</td><td>" . $row["type"]. " <td style= color:{$tdStyle};'>{$row['amount']}</td>"."</td><td>". "</td><td>" 
+. $mydatetime. "</td><td>" . $note. "</td></tr>";
 
-. $row["mydatetime"]. "</td><td>" . $row["note"]. "</td></tr>";
+                        }
 
+    } 
 
-
-
-
-}
-} 
 echo "</TABLE>\n";
 }
 
-
-
- <TR><TD><form action='add_transaction.php' method='POST'>
-
-   <input type='hidden' name='customer_name' value='Mary Lee'>
-
-   <input type='submit' value='Add transaction'></form>
-
-   <TD><a href='display_update_transaction.php'>Display and update transaction</a>
-
-   <TR><TD colspan=2><form action="search_transaction.php" method="get">
-
-   Keyword: <input type="text" name="keywords" required="required" >
-
-   <input type="submit" value="Search transaction"></form>
-
-
-
-
-
-
-
-                }
-
-
-
+             }
+             echo "<br>";
+            echo "<br>";
   
-
+// On the customer home page, add additional 4 functions - “Search transaction” a HTML form with a
+//textbox and a button, “Add transaction” a HTML form with a button, “Display and update transaction” – a link .
+// “Display stores” – a link.
 
 
 
@@ -232,3 +212,38 @@ echo "</TABLE>\n";
 mysqli_close($con);
 
 ?>
+
+<br><br><TABLE>
+
+   <TR><TD><form action='add_transaction.php' method='POST'>
+
+<input type='hidden' name='customer_name' value= 'customer_name' >
+
+   <input type='submit' value='Add transaction'></form>
+
+  <TD> <a href='display_update_transaction.php'>Display and update transaction</a>
+
+   <TR><TD colspan=2><form action="search_transaction.php" method="get">
+
+   Keyword: <input type="text" name="keywords" required="required" >
+
+   <input type="submit" value="Search transaction"></form>
+
+   </TABLE>
+
+</body>
+
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
