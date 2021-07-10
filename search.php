@@ -1,10 +1,28 @@
 
 
-<form action="Search.php" method="post" >
+<?php
 
-<input type="text" name="valueToSearch" placeholder="Search Record.."></br>
+include "dbconfig.php";
 
-<input type="submit" name="search" value="Search Record.."> </form>
+$con = mysqli_connect($dbhostname, $dbusername, $dbpassword, $dbname)
+or die("<br>Cannot connect to DB:$dbhostname on Customers CPS3730 Database \n");
+
+$sqlquery = 
+
+$valueToSearch = $_POST['Search Transaction'];
+
+if($valueToSearch=='*') { 
 
 
-</table>
+
+
+}
+
+
+
+
+
+
+
+
+?>
