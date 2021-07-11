@@ -4,11 +4,12 @@
 
 <?php  
 
-// Use db. config
+// Use db.config
 include "dbconfig.php";
 
 // Default Time Zone Set
 date_default_timezone_set('America/New_York');
+
 
 // Function Concacts User Address
 function homeAddress($street, $city, $zipcode) {
@@ -41,71 +42,61 @@ function techInfo(){
 
 $dnsvalue = true;
 
-if(dns_get_record("kean.edu") == $dnsvalue){
+if((dns_get_record("kean.edu") == $dnsvalue) || $ipaddress=='10.116.10.5' || $IPv4[0] == "10" || $IPv4[0].".".$IPv4[1] == "131.125"  ){
 
      echo " You are NOT from Kean University!";
     }else{
 
       echo " You are from Kean University!";
 }
-   /* 
-
-   Hard-Coded Kean IP Address
-
-   if($ipaddress!='10.116.10.5'){
-
-        // echo " You are NOT from Kean University!";
-     // }else{
-
-        //  echo " You are from Kean University!";
-    //  }
-*/
-
 }
 
-// Connection to DB statement 
+
+
+// // Connection to DB statement 
 $con = mysqli_connect($dbhostname, $dbusername, $dbpassword, $dbname)
-or die("<br>Cannot connect to DB:$dbhostname on Customers CPS3730 Database \n");
-
-// If the submit button is selected
-if(isset($_POST["btnSubmit"])) { // this used to be !isset revert back if problem arises
-
-  // Define Variables
- $username = $_POST["username"]; // Username variable: Use to be GET
-
- $password = $_POST["password"]; // Password variable: Use to be GET
+or die("<br>Cannot connect to DB:$dbhostname on Customers CPS3740 Database \n");
 
 
-// converts username to lowercase
-$username=strtolower($username);
+if(isset($_POST["btnSubmit"])){
+	if (isset($_POST['username']) && $_POST['password']) {
+
+
+ // Define Variables
+	$username = $_POST['username'];
+	$password = $_POST['password'];
+
+	// converts username to lowercase
+	$username=strtolower($username);
+
 
 //Query that reads statement to check whether code is in DB
- $query = "SELECT login,password, city, zipcode, gender, img, name, state, street, DOB FROM CPS3740.Customers WHERE login= '$username' OR password= '$password'";
+$sqlquery =  "SELECT login,id,password, city, zipcode, gender, img, name, state, street, DOB FROM CPS3740.Customers WHERE login = '$username' AND password = '$password'";
 
- // Result From the SQL Query & Connection
-$result = mysqli_query($con, $query);
 
-// Boolean Statement if $result has value
-if($result) {
+// Result From the SQL Query & Connection
+ $result = mysqli_query($con, $sqlquery);
+ 
 
-    if (mysqli_num_rows($result) > 0) {
+// Returns an array that corresponds to the fetched row 
+$row = mysqli_fetch_array($result);
 
-            // Returns an array that corresponds to the fetched row 
-          $row = mysqli_fetch_array($result);
 
-                    //if wrong password then
-                   if($row['password']!=$password) {
+if($result){
 
-                echo "Login ".$row['login']." exists, but password does not match.";
+if (mysqli_num_rows($result)>0) {
 
-                     }
-                        // If Login is Successful 
-                        else { 
+			
+				if ($password== $row['password']){
 
-                            techInfo();
+					$ID = $row['id'];
+					$name = $row['name'];
 
-                            setcookie("user",$username,time()+10*60); // Must use Session Key and Cookie OR DO we use something else?
-                            // Whenever I refresh I lose data
+
+					setcookie("ID", $ID, time() +(60*60*24));
+	            	setcookie("customer_name", $name, time() +(60*60*24));
+
+	            	techInfo();
 
                             echo "<br>";
                             // Displays Welcome Message to User
@@ -130,26 +121,29 @@ if($result) {
 
                             // Line Border
                            echo '<hr/>'; 
-                           
 
-                        // Display all records for the logged in customer in your Money_xxxx table that you created and and inserted in Homework1.
+
+                           // Display all records for the logged in customer in your Money_xxxx table that you created and and inserted in Homework1.
                       $MoneyTblQuery = "SELECT mid, code, cid, type, amount, mydatetime, note 
                       FROM CPS3740_2021S1.Money_brodavia m inner join CPS3740.Customers c
-                      WHERE c.id = m.cid  AND login='$username' "; // Link it to users login and name 
+                      WHERE c.id = m.cid  AND login='$username' ";
 
 
-                        $result_set = $con->query($MoneyTblQuery);
+                      $result_set = $con->query($MoneyTblQuery);
 
 
-// Prints Table for Customer 
-if (mysqli_num_rows($result_set) > 0) {
+                      if (mysqli_num_rows($result_set) > 0) {
 
 
 // The Number of transactions that the user has
-    echo "<hr>There are" . " transcations for customer " .$row['name'];
+   $queryT = "SELECT count(code) as total FROM CPS3740_2021S1.Money_brodavia, CPS3740.Customers c WHERE cid = '$ID' AND login='$username'";
+    $resultT=mysqli_query($con,$queryT);
+  	$data=mysqli_fetch_array($resultT);
+ 
+    echo "There are " .$data['total']. " transcations for customer " .$row['name'];
 
 
-// output data of each row
+    // output data of each row
 echo "<TABLE width='1000'>";  // open the table and start tag
 echo "<TABLE border=1>\n
 <tr>    
@@ -162,11 +156,15 @@ echo "<TABLE border=1>\n
 <th>Note</th>
 </tr> ";
 
+
+
 if($result_set){
   
         while($row = mysqli_fetch_array($result_set)) {
 
-    $ID= $row["mid"];
+
+
+$ID= $row["mid"];
     $code = $row["code"];
     $type =$row["type"];
     $amount=$row["amount"];
@@ -184,27 +182,33 @@ echo "<tr><td>" . $ID. "</td><td>" . $code . "</td><td>" . $type. " <td style= c
 
 . $mydatetime. "</td><td>" . $note. "</td></tr>";
 
-                        }
 
-            } 
 
-                echo "</TABLE>\n";
-    }
+}
+}
 
- }
-    
+ echo "</TABLE>\n";
+
+}
+                    
+
+}
+
+
+
+
 // Develop out Calculate and display the balance under the table. If the balance < 0, please highlight in RED.
 // Otherwise, display the amount in BLUE color.
 
 $sqlbalance = "SELECT amount, type
  FROM CPS3740_2021S1.Money_brodavia m inner join CPS3740.Customers c
- WHERE id=cid AND login='$username'";
+ WHERE id=cid AND login='$username' AND password= $password ";
 
  $balanceResult = mysqli_query($con, $sqlbalance);
 
  $finalBal = 0;
 
-$balancearray = array();
+$balanceArray = array();
 
 if($balanceResult) {
 
@@ -215,70 +219,79 @@ while($balancerow = mysqli_fetch_array($balanceResult)) {
 
         $balancerow['amount'] = -1 * $balancerow['amount'];
 
-        array_push($balancearray, $balancerow['amount']);
+        array_push($balanceArray, $balancerow['amount']);
     }else{
 
-                array_push($balancearray, $balancerow['amount']);
+                array_push($balanceArray, $balancerow['amount']);
 
     }
 
     }
 
-   echo "Total balance: " . array_sum($balancearray);
+// If Balance is < 0 then it should be red or Blue
+            if(array_sum($balanceArray)<0) {
 
-// If Balance is < 0 then it should be red 
+               $finalBal= array_sum($balanceArray);
+               $finalColor = "FF0000";
 
-
-
- // On the customer home page, add additional 4 functions - “Search transaction” a HTML form with a
-//textbox and a button, “Add transaction” a HTML form with a button, “Display and update transaction” – a link .
-// “Display stores” – a link.>
-echo "<form action='add_transaction.php' method='POST'>";
-
-   echo "  <input type='hidden' name='customer_name' value= 'customer_name' > <! Change customer name probably later in the future>";
-
-    echo "  <input type='submit' value='Add Transaction'><span></form> ";
-
-  echo " <a href='display_transaction.php'>Display and Update transactions</a>";
-
-    echo " &nbsp;&nbsp;  <a href='display_stores.php'>Display Stores</a>";
-
-     echo "<form action='search.php' method='get'><br>";
-
-    echo " Keyword: <input type='text' name='keyword' required='required'>";
-
-     echo "<input type='submit' value='Search Transaction'></form>";
+                echo " Total balance: $  " .  "<b style=\"color: $finalColor\">$finalBal</b>"; // Was SPan 
+                                    
+            } else{
 
 
+                 $finalBal= array_sum($balanceArray);
+               $finalColor = "0B2265";
+                echo " Total balance: $ " .  "<b style=\"color: $finalColor\">$finalBal</bn>";
+
+            }
+
+        }
+ 				setcookie("balance", $balanceArray, time()+86400*30);
 
 
+                			 echo "<br><br><TABLE>";
+						
+							echo "<TR><TD><form action='Add_Transaction.php' method='POST'>";
+							echo "<input type='hidden' name='customer_name' value=\"".$name."\">";
+							echo "<input type='submit' value='Add transaction'><span></form>";
+							echo "<a href='display_transaction.php'>Display and update transaction</a>";
+							echo " &nbsp;&nbsp;  <a href='display_stores.php'>Display Stores</a>";
+							echo "<TR><TD colspan=2><form action='search.php' method='get'>";
+							echo "Keyword: <input type='text' name='SearchWord'  required='required' >";
+							echo "<input type='submit' value='Search transaction'></form>";
+							echo "</TABLE></HTML>";
+ 
+echo "</TABLE>";
+
+echo "</body>";
+
+echo "</html>";
+
+
+} else {
+			$Loginquery = "SELECT login FROM CPS3740.Customers WHERE login = '$username'";
+			$resultlogin = mysqli_query($con,$Loginquery);
+            $row = mysqli_fetch_array($resultlogin);
+			
+
+		if ($username == $row['login']) {
+	    		echo "<br>Login " . $username . " exists, but password not match.\n";
+	    		mysqli_free_result($resultlogin);
+	    	
+	    	} elseif ($username != $row['login']) {
+				echo "<br>Login " . $username ." doesn’t exist in the database.\n";
+				mysqli_free_result($resultlogin);
+			}
+		}
+}
 
 
 }
 
-
- }
-                //  If the Login is not in Database 
-            else { 
-                    echo "Login ".$username." doesn’t exist in the database";
-
-                        }
-
-                    }
-        }
-
+}
 mysqli_close($con);
 
+
+
+
 ?>
-
-
-
-
-
-</html>
-
-
-
-
-
-
