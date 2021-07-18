@@ -1,8 +1,8 @@
 
 <html>
-<a href='logout.php'>User logout</a><br>
 
 <?php  
+ob_start();
 
 // Use db.config
 include "dbconfig.php";
@@ -38,34 +38,46 @@ function techInfo(){
     echo ' Your browser and OS: ' . $_SERVER['HTTP_USER_AGENT'] . "\n\n";
     echo "<br>";
     // Displays Whether User is from Kean University or not
-     $ipaddress = $_SERVER['REMOTE_ADDR'];
 
 $dnsvalue = true;
 
-if((dns_get_record("kean.edu") == $dnsvalue) || $ipaddress=='10.116.10.5' || $IPv4[0] == "10" || $IPv4[0].".".$IPv4[1] == "131.125"  ){
+$ipaddress = $_SERVER['REMOTE_ADDR'];
 
-     echo " You are NOT from Kean University!";
+$IPv4 = explode('.', $ipaddress);
+
+
+if( ($ipaddress=='10.250.8.366') or  $IPv4[0] == 10 or ($IPv4[0] == 131 AND $IPv4[1] == 125 )){
+
+     echo " You ARE from Kean University!";
     }else{
 
-      echo " You are from Kean University!";
+      echo " You are NOT from Kean University!";
 }
 }
 
+
+ 
 
 
 // // Connection to DB statement 
 $con = mysqli_connect($dbhostname, $dbusername, $dbpassword, $dbname)
 or die("<br>Cannot connect to DB:$dbhostname on Customers CPS3740 Database \n");
 
+   
+
 
 if(isset($_POST["btnSubmit"])){
 	if (isset($_POST['username']) && $_POST['password']) {
 
 
- // Define Variables
-	$username = $_POST['username'];
-	$password = $_POST['password'];
+    // Define Variables
+    $username = $_POST['username'];
+    $password = $_POST['password'];
 
+    // SET COOKIE
+    setcookie("username", $username, time() +(60*60*24));
+    setcookie("password", $password, time() +(60*60*24));
+    
 	// converts username to lowercase
 	$username=strtolower($username);
 
@@ -86,16 +98,15 @@ if($result){
 
 if (mysqli_num_rows($result)>0) {
 
-			
+			echo "<a href='logout.php'>User logout</a><br>";
 				if ($password== $row['password']){
 
 					$ID = $row['id'];
 					$name = $row['name'];
 
-
 					setcookie("ID", $ID, time() +(60*60*24));
 	            	setcookie("customer_name", $name, time() +(60*60*24));
-
+                    
 	            	techInfo();
 
                             echo "<br>";
@@ -124,9 +135,9 @@ if (mysqli_num_rows($result)>0) {
 
 
                            // Display all records for the logged in customer in your Money_xxxx table that you created and and inserted in Homework1.
-                      $MoneyTblQuery = "SELECT mid, code, cid, type, amount, mydatetime, note 
-                      FROM CPS3740_2021S1.Money_brodavia m inner join CPS3740.Customers c
-                      WHERE c.id = m.cid  AND login='$username' ";
+                      $MoneyTblQuery = "SELECT * 
+                      FROM CPS3740_2021S1.Money_brodavia m, CPS3740.Customers c, CPS3740.Sources s
+                      WHERE c.id = m.cid  AND  m.sid = s.id AND login='$username' order by m.mydatetime ASC; "; // Order By ASC?
 
 
                       $result_set = $con->query($MoneyTblQuery);
@@ -135,10 +146,11 @@ if (mysqli_num_rows($result)>0) {
                       if (mysqli_num_rows($result_set) > 0) {
 
 
-// The Number of transactions that the user has
+    // The Number of transactions that the user has
    $queryT = "SELECT count(code) as total FROM CPS3740_2021S1.Money_brodavia, CPS3740.Customers c WHERE cid = '$ID' AND login='$username'";
     $resultT=mysqli_query($con,$queryT);
-  	$data=mysqli_fetch_array($resultT);
+    $data=mysqli_fetch_array($resultT);
+ 
  
     echo "There are " .$data['total']. " transcations for customer " .$row['name'];
 
@@ -156,7 +168,7 @@ echo "<TABLE border=1>\n
 <th>Note</th>
 </tr> ";
 
-
+$Balance=0;
 
 if($result_set){
   
@@ -164,12 +176,15 @@ if($result_set){
 
 
 
-$ID= $row["mid"];
+    $ID= $row["mid"];
     $code = $row["code"];
     $type =$row["type"];
     $amount=$row["amount"];
     $mydatetime = $row["mydatetime"];
+    $source = $row['name'];
     $note = $row["note"];
+    $Balance += $amount;
+   
 
     if($row['type'] == 'W'){
 
@@ -178,7 +193,7 @@ $ID= $row["mid"];
         } elseif($row['type'] == 'D'){
     $tdStyle = 'blue';
 }
-echo "<tr><td>" . $ID. "</td><td>" . $code . "</td><td>" . $type. " <td style= color:{$tdStyle};'>{$row['amount']}</td>"."</td><td>". "</td><td>" 
+echo "<tr><td>" . $ID. "</td><td>" . $code . "</td><td>" . $type. " <td style= color:{$tdStyle};'>{$row['amount']}</td>"."</td><td>". $source."</td><td>" 
 
 . $mydatetime. "</td><td>" . $note. "</td></tr>";
 
@@ -204,51 +219,27 @@ $sqlbalance = "SELECT amount, type
  FROM CPS3740_2021S1.Money_brodavia m inner join CPS3740.Customers c
  WHERE id=cid AND login='$username' AND password= $password ";
 
- $balanceResult = mysqli_query($con, $sqlbalance);
-
- $finalBal = 0;
-
-$balanceArray = array();
-
-if($balanceResult) {
-
-while($balancerow = mysqli_fetch_array($balanceResult)) {
+ 
+// If Balance stops working, revert to original algorithim with Array. 
 
 
-    if($balancerow['type']=='W'){
-
-        $balancerow['amount'] = -1 * $balancerow['amount'];
-
-        array_push($balanceArray, $balancerow['amount']);
-    }else{
-
-                array_push($balanceArray, $balancerow['amount']);
-
-    }
-
-    }
 
 // If Balance is < 0 then it should be red or Blue
-            if(array_sum($balanceArray)<0) {
+            if($Balance<0) {
 
-               $finalBal= array_sum($balanceArray);
-               $finalColor = "FF0000";
-
-                echo " Total balance: $  " .  "<b style=\"color: $finalColor\">$finalBal</b>"; // Was SPan 
+               $finalColor = "red";
+                echo " Total balance: $  " .  "<b style=\"color: $finalColor\">$$Balance</b>"; // Was SPan 
                                     
             } else{
 
-
-                 $finalBal= array_sum($balanceArray);
-               $finalColor = "0B2265";
-                echo " Total balance: $ " .  "<b style=\"color: $finalColor\">$finalBal</bn>";
+               $finalColor = "blue";
+                echo " Total balance: $ " .  "<b style=\"color: $finalColor\">$$Balance</b>";;
 
             }
 
-        }
- 				setcookie("balance", $balanceArray, time()+86400*30);
+            setcookie('balance', $Balance, time()+86400*30);
 
-
+            
                 			 echo "<br><br><TABLE>";
 						
 							echo "<TR><TD><form action='Add_Transaction.php' method='POST'>";
@@ -268,28 +259,44 @@ echo "</body>";
 echo "</html>";
 
 
-} else {
+} 
+
+
+
+else {
 			$Loginquery = "SELECT login FROM CPS3740.Customers WHERE login = '$username'";
 			$resultlogin = mysqli_query($con,$Loginquery);
             $row = mysqli_fetch_array($resultlogin);
 			
 
 		if ($username == $row['login']) {
-	    		echo "<br>Login " . $username . " exists, but password not match.\n";
+                   echo "<br><a href = 'index.html'>Back to Homepage </a>";
+	    		echo "<br>Login " . $username . " exists, but password does not match.\n";
 	    		mysqli_free_result($resultlogin);
+          
 	    	
 	    	} elseif ($username != $row['login']) {
+                      echo "<br><a href = 'index.html'>Back to Homepage </a>";
 				echo "<br>Login " . $username ." doesn’t exist in the database.\n";
 				mysqli_free_result($resultlogin);
+           
 			}
 		}
 }
 
 
 }
+// If Cookie is not set then Tell User to Sign in, possibly delete if it starts giving issues 
+// Set Cookie to tell user log out if cookie not set
+if(!isset($_COOKIE)){
+                echo "<br>Cookie not set log in again.";
+            }
+
+
 
 }
 mysqli_close($con);
+
 
 
 
