@@ -97,7 +97,7 @@ $valueToSearch= $_GET['SearchWord'];
         $queryT= "SELECT * FROM 
         CPS3740_2021S1.Money_brodavia m,CPS3740.Sources s  WHERE m.cid = $id AND m.sid = s.id  
         AND note LIKE CONCAT('%".$valueToSearch."%')
-        order by m.mid desc";
+        order by m.mid asc";
         
         $noteResult = mysqli_query($con, $queryT);
             
@@ -140,15 +140,15 @@ $valueToSearch= $_GET['SearchWord'];
                      if ($ID <>"") echo "<TR><TD>$ID\n"; 
                      if ($code <>"")  echo "<td>$code</td>\n"; 
                     if ($type <>"")  echo "<td>$type</td>\n";
-                     if ($position<>"")  echo "<td>$position</td>\n";
                     if ($Source<>"")  echo "<td>$Source</td>\n";
 
                      
                    //  echo ""
                     echo " <td style= color:{$tdStyle};'>{$row['amount']}</td>";
-                    echo "<td>".$Source."</td>";
-                    echo "<td>".$mydatetime."</td>";
-                    echo "<td>".$note."</td>";
+                    //echo "<td>".$Source."</td>";
+                    if ($mydatetime<>"")  echo "<td>$mydatetime</td>\n";
+
+                    if ($note<>"")  echo "<td>$note</td>\n";
 
 
                 }
