@@ -136,10 +136,13 @@ $valueToSearch= $_GET['SearchWord'];
                             $tdStyle = 'blue';
                         }
             
-                    echo "<tr><td>".$ID."</td>";
-                    echo "<td>".$code."</td>";
-                    echo "<td>". $type ."</td>";
-            
+                  
+                     if ($ID <>"") echo "<TR><TD>$ID\n"; 
+                     if ($code <>"")  echo "<td>$code</td>\n"; 
+                    if ($type <>"")  echo "<td>$type</td>\n";
+                     if ($position<>"")  echo "<td>$position</td>\n";
+                    if ($Source<>"")  echo "<td>$Source</td>\n";
+
                      
                    //  echo ""
                     echo " <td style= color:{$tdStyle};'>{$row['amount']}</td>";
