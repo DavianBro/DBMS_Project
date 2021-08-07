@@ -22,9 +22,9 @@ if(isset($_COOKIE['ID'])) {
     $result  = mysqli_query($con,$sqlquery);
 
 //***** REFERENCE*******
-// y = 1st query
-// yy = 2 sql query
-// yyy =3rd sql query
+// 1 = 1st query
+// 2 = 2 sql query
+// 3 =3rd sql query
 
 // If Mysqli rows == 0 then set variables and run code
     if (mysqli_num_rows($result) == 0) {
@@ -34,10 +34,10 @@ if(isset($_COOKIE['ID'])) {
         $note = $_POST['note'];
 
         // Second SQL Query 
-        $sqlqueryy = "SELECT sum(amount) as bal FROM CPS3740_2021S1.Money_brodavia WHERE cid = $ID";
+        $sqlquery2 = "SELECT sum(amount) as bal FROM CPS3740_2021S1.Money_brodavia WHERE cid = $ID";
 
         // Result from second query 
-        $result2 = mysqli_query($con, $sqlqueryy);
+        $result2 = mysqli_query($con, $sqlquery2);
 
         $row = mysqli_fetch_array($result2);
 
@@ -53,11 +53,11 @@ if(isset($_COOKIE['ID'])) {
             // Balance + Amount = the new balance 
             $newBal = $balance + $amt;
 
-            $sqlqueryyy = "INSERT INTO CPS3740_2021S1.Money_brodavia
+            $sqlquery3 = "INSERT INTO CPS3740_2021S1.Money_brodavia
                     (code, cid, sid, type, amount, mydatetime, note) VALUES
                     ('$transaction_code', '$ID', '$sid', '$type', '$amt', NOW(), '$note')";
             
-            if(mysqli_query($con, $sqlqueryyy)) {
+            if(mysqli_query($con, $sqlquery3)) {
                 echo "<a href='logout.php'>User logout</a><br>"; // user log out 
                 echo "THE TRANSACTION $transaction_code WAS SUCCESSFUL! ";
                 echo "<br>Your NEW BALANCE is: $$newBal";
@@ -65,8 +65,7 @@ if(isset($_COOKIE['ID'])) {
             }
 
 }
-
-            // Error on this line of code...
+           
 else {
                 echo "<a href='logout.php'>User logout</a><br>";
                 echo " <font color = red > ERROR! AMOUNT CANNOT BE LESS THAN OR EQUAL TO 0  </font>";
@@ -92,11 +91,11 @@ else {
             else {
                 $amt = $amt*(-1);
                 $newBal = $balance + $amt;
-                $query4 = "INSERT INTO CPS3740_2021S1.Money_brodavia
+                $sqlquery4 = "INSERT INTO CPS3740_2021S1.Money_brodavia
                         (code, cid, sid, type, amount, mydatetime, note) VALUES
                         ('$transaction_code', '$ID', '$sid', '$type', '$amt', NOW(), '$note')";
 
-                if (mysqli_query($con, $query4)) {
+                if (mysqli_query($con, $sqlquery4)) {
                     echo "<a href='logout.php'>User logout</a><br>";
                     echo "TRANSACTION $transaction_code SUCCESSFUL";
                     echo "<br> Your NEW BALANCE is: $$newBal"; // Delete p2
